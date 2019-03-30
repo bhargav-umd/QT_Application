@@ -31,7 +31,7 @@
  */
 #ifndef PART2_H
 #define PART2_H
-#include <Eigen>
+
 #include <QApplication>
 #include <QDebug>
 #include <QGraphicsScene>
@@ -50,6 +50,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <samppoints.h>
 #include <vector>
 namespace Ui {
 class Part2;
@@ -107,22 +108,17 @@ protected:
     */
   /* ----------------------------------------------------------------*/
   virtual void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+
   /* ----------------------------------------------------------------*/
   /**
-   * @brief  Tells if points can be fit in a circle , minimum 1 point needed
+   * @brief  to find best fit of circle
    *
-   * @param points sample points from user/selection
-   * @param midpoint midpoint of the fitted circle
-   * @param radius of the fitted circle
+   * @param samppoints containing all points selected by user
    *
-   * @return  true if no error
+   * @return vector contaiining center location and radius of the circle
    */
   /* ----------------------------------------------------------------*/
-  virtual bool solveLeastSquaresCircleKasa(
-      const std::vector<Eigen::Vector2d,
-                        Eigen::aligned_allocator<Eigen::Vector2d>> &points,
-      Eigen::Vector2d &midpoint, double &radius);
-
+  std::vector<double> CircleFitByKasa(samppoints &samppoints);
   int width, height;     // dimensions of Qrectangle to create respective circle
   int block_width = 10;  // individual small blocks width to make given pattern
   int block_height = 10; // individual small blocks height to make given pattern

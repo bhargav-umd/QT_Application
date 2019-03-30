@@ -5,8 +5,8 @@ Aim of the Part_2 is to let user select blocks on gui and generate circle and/or
 ## Prerequisite and Dependancies
 - Qt >= 5.5 QtIvi Unix system Application Manager
 - install Qt Creator
-- Eigen Library
 - OpenCV installed in the system
+- NEED openCV only for generating ellipse 
 
 ### To Install qt-5 in linux system
 Use "https://doc.qt.io/qt-5/gettingstarted.html" for procedural instructions.
@@ -34,7 +34,7 @@ sudo ldconfig
 ### To install dependacies on windows
 
 Follow "https://www.learnopencv.com/install-opencv3-on-windows/" to install OpenCV3 into windows
-Follow "https://github.com/roboticslab-uc3m/installation-guides/blob/master/install-eigen.md" to install eigen library in windows
+
 
 Respective changes has been made in part_2.pro file to include all the dependancies
 
@@ -72,8 +72,7 @@ sudo make install
 	- Generate Ellipse based on the selected points.
 ### Circle Generation
 
-Created separate Pushbutton to generate circel. Here, Circle is generated using Kasa Fit Alogorithm(the simplest and fastest fit, but biased toward smaller circles when an incomplete arc is observed), Kasa Algorithm has the following
-properties:
+Created separate Pushbutton to generate circle. Here, Circle is generated using Kasa Fit Alogorithm(the simplest and fastest fit, but biased toward smaller circles when an incomplete arc is observed), Kasa Algorithm has the following properties:
 
 1. It is more advantageous to minimize not the mean squares.
 2. The Kasa procedure gives biased estimates of the circle center unless the data are symmetrically distributed around the circumference of the circle.
@@ -84,14 +83,14 @@ length and to the noise present in the data.
 References :
 1. I. Kasa, A curve fitting procedure and its error analysis, IEEE Trans. Inst.
 Meas. 25, 1976, 8–14
-2. https://github.com/DLuensch/Least-Squares-Circle-Fitting-Kasa-Method-.git
-3. https://www.cerias.purdue.edu/assets/pdf/bibtex_archive/JEI000179.pdf
+2. https://www.cerias.purdue.edu/assets/pdf/bibtex_archive/JEI000179.pdf
 
 ### Ellipse Generation 
 => Ellipse is generated using inbuilt OpenCV funtion FitEllipse which intakes points and outputs the rotated rectangle mid point and
    width/height of the rectangle which encloses the required ellipse. We can use this rectangle properties to generate the required ellipse.
    The only limitation is,it needs atleast 5 points to generate ellipse. Created a Seperate Push Button on gui which uses this function to
    generate ellipse.  
+
 
 ## Documentation
 

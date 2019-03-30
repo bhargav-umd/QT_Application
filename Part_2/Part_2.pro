@@ -14,7 +14,7 @@ TEMPLATE = app
 unix:!mac {
     message("* Using settings for Unix/Linux.")
     INCLUDEPATH += /usr/local/include/opencv
-    INCLUDEPATH += $$PWD/../eigen-eigen-323c052e1731/Eigen
+    
     LIBS += -L/usr/local/lib/ \
         -lopencv_core \
         -lopencv_highgui \
@@ -24,7 +24,6 @@ unix:!mac {
 macx {
     message("* Using settings for Mac OS X.")
     INCLUDEPATH += /usr/local/include/opencv
-     INCLUDEPATH += $$PWD/../eigen-eigen-323c052e1731/Eigen
     LIBS += -L/usr/local/lib/ \
         -lopencv_core \
         -lopencv_highgui \
@@ -73,10 +72,14 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        part2.cpp
+        part2.cpp \
+    samppoints.cpp \
+    circle.cpp
 
 HEADERS += \
-        part2.h
+        part2.h \
+    samppoints.h \
+    circle.h
 
 FORMS += \
         part2.ui

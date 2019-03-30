@@ -30,8 +30,9 @@
  * @date 2019-03-30
  */
 #include "part2.h"
+#include "circle.h"
+#include "samppoints.h"
 #include "ui_part2.h"
-
 /* ----------------------------------------------------------------*/
 /**
  * @brief  Default constructor
@@ -198,81 +199,111 @@ void Part2::mouseReleaseEvent(QMouseEvent *event) {
   update();
 }
 
-bool Part2::solveLeastSquaresCircleKasa(
-    const std::vector<Eigen::Vector2d,
-                      Eigen::aligned_allocator<Eigen::Vector2d>> &points,
-    Eigen::Vector2d &midpoint, double &radius) {
-  // REFERENCE:
-  // https://github.com/DLuensch/Least-Squares-Circle-Fitting-Kasa-Method-.git
-  // was used.
-  /* ---------------------------------------------------------------------------
- * Revision			: 1.0
- * Modul				: Least Square Circle Kasa C++
- * Creation			: 10.01.2015
- * Recent changes	: 10.01.2015
- * ----------------------------------------------------------------------------
- * LOG:
- * ----------------------------------------------------------------------------
- * Author			: Dennis Luensch
- * Contact			: dennis.luensch@gmail.com
- *    ALl Copyrights for this part reserved to respective owner
+/* ----------------------------------------------------------------*/
+/**
+ * @brief  To return circle radius and center based on calculations
+ *
+ * @param  samplepoints as selected by user
+ *
+ * @return vector containing center x y coordinates and radius
  */
+/* ----------------------------------------------------------------*/
+std::vector<double> Part2::CircleFitByKasa(samppoints &samppoints)
+/*
+      Circle fit to a given set of samppoints points (in 2D)
 
-  int length = int(points.size());
-  double x1;
-  double x2;
-  double x3;
-  Eigen::MatrixXd AFill(3, length);
-  Eigen::MatrixXd A(length, 3);
-  Eigen::VectorXd AFirst(length);
-  Eigen::VectorXd ASec(length);
-  Eigen::VectorXd AFirstSquared(length);
-  Eigen::VectorXd ASecSquared(length);
-  Eigen::VectorXd ASquaredRes(length);
-  Eigen::VectorXd b(length);
-  Eigen::VectorXd c(3);
-  bool ok = true;
+      This is an algebraic fit, disovered and rediscovered by many people.
+      One of the earliest publications is due to Kasa:
 
-  if (length > 1) {
-    for (int i = 0; i < length; i++) {
-      AFill(0, i) = points[i](0);
-      AFill(1, i) = points[i](1);
-      AFill(2, i) = 1;
-    }
+      I. Kasa, "A curve fitting procedure and its error analysis",
+      IEEE Trans. Inst. Meas., Vol. 25, pages 8-14, (1976)
 
-    A = AFill.transpose();
+      Input:  samppoints     - the class of samppoints (contains the given
+   points):
 
-    for (int i = 0; i < length; i++) {
-      AFirst(i) = A(i, 0);
-      ASec(i) = A(i, 1);
-    }
+          samppoints.n   - the number of samppoints points
+          samppoints.X[] - the array of X-coordinates
+          samppoints.Y[] - the array of Y-coordinates
 
-    for (int i = 0; i < length; i++) {
-      AFirstSquared(i) = AFirst(i) * AFirst(i);
-      ASecSquared(i) = ASec(i) * ASec(i);
-    }
+     Output:
+               circle - parameters of the fitting circle:
 
-    b = AFirstSquared + ASecSquared;
+           circle[0] - the X-coordinate of the center of the fitting circle
+           circle[1] - the Y-coordinate of the center of the fitting circle
+           circle[2] - the radius of the fitting circle
 
-    c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+     The method is based on the minimization of the function
 
-    x1 = c(0);
-    midpoint(0) = x1 * 0.5;
-    x2 = c(1);
-    midpoint(1) = x2 * 0.5;
-    x3 = c(2);
-    radius = sqrt((x1 * x1 + x2 * x2) / 4 + x3);
-  } else {
-    ok = false;
+                 F = sum [(x-a)^2 + (y-b)^2 - R^2]^2
+
+*/
+{
+  int i;
+
+  double Xi, Yi, Zi;
+  double Mxy, Mxx, Myy, Mxz, Myz;
+  double B, C, G11, G12, G22, D1, D2;
+
+  circle circle;
+  qDebug() << "circle.a" << circle.a;
+
+  samppoints.means(); // Compute x- and y- sample means (via a function in
+                      // the class "samppoints")
+
+  //     computing moments
+
+  Mxx = Myy = Mxy = Mxz = Myz = 0.;
+
+  for (i = 0; i < samppoints.n; i++) {
+    Xi = samppoints.X[i] - samppoints.meanX; //  centered x-coordinates
+    Yi = samppoints.Y[i] - samppoints.meanY; //  centered y-coordinates
+    Zi = Xi * Xi + Yi * Yi;
+
+    Mxx += Xi * Xi;
+    Myy += Yi * Yi;
+    Mxy += Xi * Yi;
+    Mxz += Xi * Zi;
+    Myz += Yi * Zi;
   }
 
-  return ok;
+  Mxx /= samppoints.n;
+  Myy /= samppoints.n;
+  Mxy /= samppoints.n;
+  Mxz /= samppoints.n;
+  Myz /= samppoints.n;
+
+  // solving system of equations by Cholesky factorization
+  // Refer Paper for more clear idea
+
+  G11 = sqrt(Mxx);
+  G12 = Mxy / G11;
+  G22 = sqrt(Myy - G12 * G12);
+
+  D1 = Mxz / G11;
+  D2 = (Myz - D1 * G12) / G22;
+  //    computing paramters of the fitting circle
+
+  C = D2 / G22 / 2.0;
+  B = (D1 - G12 * C) / G11 / 2.0;
+
+  // assembling the output
+
+  circle.a = B + samppoints.meanX;
+  circle.b = C + samppoints.meanY;
+  circle.r = sqrt(B * B + C * C + Mxx + Myy);
+
+  std::vector<double> circle_data;
+  circle_data.push_back(circle.a);
+  circle_data.push_back(circle.b);
+  circle_data.push_back(circle.r);
+  return circle_data;
 }
 
 /* ----------------------------------------------------------------*/
 /**
  * @brief  Generate Ellipse from the points when 1st push button is clicked
  */
+// USING OPENCV ONLY FOR ELLIPSE !!!!!!!!!!!!!!!!!!!!!
 /* ----------------------------------------------------------------*/
 void Part2::on_pushButton1_clicked() {
   QPainter painter(&pix_map);
@@ -326,19 +357,22 @@ void Part2::on_pushButton1_clicked() {
   update();
 }
 
+/* ----------------------------------------------------------------*/
+/**
+ * @brief  Circle generation when generate button is clicked
+ */
+/* ----------------------------------------------------------------*/
 void Part2::on_pushButton_2_clicked() {
   // if (is_user_done = false){
   QPainter painter{&pix_map};
   painter.setRenderHint(QPainter::Antialiasing);
 
   // vector to store the selected points
-  std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>>
-      samplePoints;
-  // midpoint of the fitted circle
-  Eigen::Vector2d midpoint;
-  double radius;
-  bool ok;
 
+  std::vector<double> midpoint;
+  double radius;
+  // bool ok;
+  std::vector<cv::Point> circle_points;
   are_all_points_selected = true;
   int map_x_location = 10;
   int map_y_location = 10;
@@ -347,28 +381,39 @@ void Part2::on_pushButton_2_clicked() {
   for (int i = 0; i < 20; ++i) {
     for (int j = 0; j < 20; ++j) {
       if (map_color[i][j] == true) {
-        samplePoints.push_back(
-            Eigen::Vector2d((map_x_location + (block_width / 2)),
-                            (map_y_location + (block_height / 2))));
+        cv::Point pt_;
+        pt_.x = (map_x_location + (block_width / 2));
+        pt_.y = (map_y_location + (block_height / 2));
+        // storing all the selected points locations in a vector
+        circle_points.push_back(pt_);
       }
       map_y_location = map_y_location + gap;
     }
     map_x_location = map_x_location + gap;
     map_y_location = 10;
   }
+  samppoints data;
+  data.n = int(circle_points.size());
 
-  // Using Kasa Fitting Algorithm to fit circle
-  ok = solveLeastSquaresCircleKasa(samplePoints, midpoint, radius);
-  if (ok) {
-    QRect myRect(int(midpoint(0)) - int(radius), int(midpoint(1)) - int(radius),
-                 int(radius) * 2, int(radius) * 2);
-    // drawing the resultant circle
-    painter.setPen({Qt::red, 1.2});
-    painter.fillRect(pix_map.rect(), Qt::white);
-    painter.drawEllipse(myRect);
-    update();
-  } else {
-    qDebug() << "Not able to fit circle using Kasa algorithm, restart to "
-                "select points ";
+  // storing parameters to use the circle fit function
+  for (std::vector<int>::size_type jj = 0; jj < circle_points.size(); jj++) {
+    cv::Point cc = circle_points[jj];
+    data.X[jj] = cc.x;
+    data.Y[jj] = cc.y;
   }
+
+  std::vector<double> circle_info = CircleFitByKasa(data);
+  // qDebug() << circle_data.a << "x coordinate" ;
+
+  radius = circle_info[2];
+
+  // drawing circle based on circle parameters calculated above
+  //
+  QRect myRect(int(circle_info[0]) - int(radius), int(circle_info[1]) - int(radius),
+               int(radius) * 2, int(radius) * 2);
+  // drawing the resultant circle
+  painter.setPen({Qt::red, 1.2});
+  painter.fillRect(pix_map.rect(), Qt::white);
+  painter.drawEllipse(myRect);
+  update();
 }
