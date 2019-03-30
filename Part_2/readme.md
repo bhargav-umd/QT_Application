@@ -70,7 +70,7 @@ sudo make install
 => Program has two features 
 	- Generate Circle based on the selected points.
 	- Generate Ellipse based on the selected points.
-### Circel Generation
+### Circle Generation
 
 Created separate Pushbutton to generate circel. Here, Circle is generated using Kasa Fit Alogorithm(the simplest and fastest fit, but biased toward smaller circles when an incomplete arc is observed), Kasa Algorithm has the following
 properties:
