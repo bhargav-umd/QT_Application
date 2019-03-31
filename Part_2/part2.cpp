@@ -214,38 +214,49 @@ std::vector<double> Part2::CircleFitByKasa(samppoints &samppoints)
 
       This is an algebraic fit, disovered and rediscovered by many people.
       One of the earliest publications is due to Kasa:
-
       I. Kasa, "A curve fitting procedure and its error analysis",
       IEEE Trans. Inst. Meas., Vol. 25, pages 8-14, (1976)
 
-      Input:  samppoints     - the class of samppoints (contains the given
-   points):
-
-          samppoints.n   - the number of samppoints points
-          samppoints.X[] - the array of X-coordinates
-          samppoints.Y[] - the array of Y-coordinates
-
-     Output:
-               circle - parameters of the fitting circle:
-
-           circle[0] - the X-coordinate of the center of the fitting circle
-           circle[1] - the Y-coordinate of the center of the fitting circle
-           circle[2] - the radius of the fitting circle
-
      The method is based on the minimization of the function
 
-                 F = sum [(x-a)^2 + (y-b)^2 - R^2]^2
-
+                 F = sum [(x-a)^2 + (y-b)^2 - R^2]^2 ----EQUATION 1
+    Reference:
+ *  Least squares fitting of circles and lines
+ *  N. Chernov and C. Lesort
+ *  Department of Mathematics
+ *  University of Alabama at Birmingham
+ *  Birmingham, AL 35294, USA
+ *  February 1, 2008
+ *
+ * di = sqrt( (xi -a) ^2 + (yi -b)^2  ) -R
+ * EQUATION 1 can be written as
+ *  F1(a,b,R) = sum [(x-a)^2 + (y-b)^2 - R^2]^2
+ *             = sum ( zi + Bxi + Cyi + D)^2        ----EQUATION 2
+ *
+ * where zi = xi^2 + yi^2, B = -2a , C= -2b and D = a^2 +b^2 -R^2
+ *
+ * Now, differentiating F1 with respect to B, C, D yields a system of linear equations:
+ *
+ *   ******************************
+ *   * MxxB + MxyC + MxD = −Mxz   *  -----EQUATION 3
+ *   * MxyB + MyyC + MyD = −Myz   *  -----EQUATION 4
+ *   * MxB + MyC + nD = −Mz        *  -----EQUATION 5
+ *   ******************************
+ *  where Mxx, Mxy, Mx, My, Mxz,Myz denote moments
+ * zi = (xi^2 + yi^2);
+ * Mxx = sum(xi^2) ; Myy = sum(yi^2) ; Myz = Sum( yi*zi)
+ * Mxz = Sum( xi*zi) ; Mxy = Sum(yi*xi) ;
+ * /
 */
 {
-  int i;
+ // int i;
 
   double Xi, Yi, Zi;
   double Mxy, Mxx, Myy, Mxz, Myz;
   double B, C, G11, G12, G22, D1, D2;
 
   circle circle;
-  qDebug() << "circle.a" << circle.a;
+  // qDebug() << "circle.a" << circle.a;
 
   samppoints.means(); // Compute x- and y- sample means (via a function in
                       // the class "samppoints")
@@ -254,7 +265,7 @@ std::vector<double> Part2::CircleFitByKasa(samppoints &samppoints)
 
   Mxx = Myy = Mxy = Mxz = Myz = 0.;
 
-  for (i = 0; i < samppoints.n; i++) {
+  for (std::vector<int>::size_type i= 0; int(i) < samppoints.n; i++) {
     Xi = samppoints.X[i] - samppoints.meanX; //  centered x-coordinates
     Yi = samppoints.Y[i] - samppoints.meanY; //  centered y-coordinates
     Zi = Xi * Xi + Yi * Yi;
@@ -273,20 +284,46 @@ std::vector<double> Part2::CircleFitByKasa(samppoints &samppoints)
   Myz /= samppoints.n;
 
   // solving system of equations by Cholesky factorization
-  // Refer Paper for more clear idea
-
+  //
+  /*  *******************************
+  *   * MxxB + MxyC + MxD = −Mxz   *  -----EQUATION 3
+  *   * MxyB + MyyC + MyD = −Myz   *  -----EQUATION 4
+  *   * MxB + MyC + nD = −Mz       *  -----EQUATION 5
+      ******************************
+  */
   G11 = sqrt(Mxx);
   G12 = Mxy / G11;
   G22 = sqrt(Myy - G12 * G12);
+// Reference ::http://www.cs.cornell.edu/courses/cs4220/2014sp/CVLBook/chap7.pdf
+  /* Since A matrix is
+   *  | Mxx Mxy Mx |    |G11 0   0   |   |G11 G21 G31 |
+   *  | Mxy Myy My |  = |G21 G22 0   | * |0   G22 G32 |
+   *  | Mx  My  n  |    |G31 G32 G33 |   |0   0    G33|
+   *
+   *
+   *  A = G * G(transpose)  = G *Gt
+   *  AX  = E
+   *  G * Gt *X =E;
+   *   Gt *X  = Di;
+   *  G * Di = E;
+   *  Di is in the form of lower triangular matrix and found as below
+  */
 
   D1 = Mxz / G11;
   D2 = (Myz - D1 * G12) / G22;
   //    computing paramters of the fitting circle
 
+  // Our variable X = [ B C D]Transpose can be found using basic
+  // matrix multiplication as follows:
   C = D2 / G22 / 2.0;
   B = (D1 - G12 * C) / G11 / 2.0;
+  // Apart from B and C , we also solve for D for further use.
 
-  // assembling the output
+  // Finally the circle parameters are as follows
+  // a = x coordinate of circle center;
+  // b = y coordinate of circle center;
+  // r  = radius of the circle
+  // These are calculated based on points and calculation above
 
   circle.a = B + samppoints.meanX;
   circle.b = C + samppoints.meanY;
@@ -370,7 +407,7 @@ void Part2::on_pushButton_2_clicked() {
   // vector to store the selected points
 
   std::vector<double> midpoint;
-  double radius;
+ // double radius;
   // bool ok;
   std::vector<cv::Point> circle_points;
   are_all_points_selected = true;
@@ -392,23 +429,24 @@ void Part2::on_pushButton_2_clicked() {
     map_x_location = map_x_location + gap;
     map_y_location = 10;
   }
-  samppoints data;
-  data.n = int(circle_points.size());
+    std::vector<double> X, Y;
+    int n =int(circle_points.size());
 
-  // storing parameters to use the circle fit function
+  std::vector<double> Xtemp;
+  std::vector<double> Ytemp;
+  //storing parameters to use the circle fit function
   for (std::vector<int>::size_type jj = 0; jj < circle_points.size(); jj++) {
-    cv::Point cc = circle_points[jj];
-    data.X[jj] = cc.x;
-    data.Y[jj] = cc.y;
+     cv::Point cc_temp = circle_points[jj];
+      Xtemp.push_back(cc_temp.x);
+      Ytemp.push_back(cc_temp.y);
   }
+     samppoints data(n,Xtemp,Ytemp);
+     std::vector<double> circle_info = CircleFitByKasa(data);
 
-  std::vector<double> circle_info = CircleFitByKasa(data);
-  // qDebug() << circle_data.a << "x coordinate" ;
+      radius = int(circle_info[2]);
 
-  radius = circle_info[2];
+// drawing circle based on circle parameters calculated above
 
-  // drawing circle based on circle parameters calculated above
-  //
   QRect myRect(int(circle_info[0]) - int(radius), int(circle_info[1]) - int(radius),
                int(radius) * 2, int(radius) * 2);
   // drawing the resultant circle

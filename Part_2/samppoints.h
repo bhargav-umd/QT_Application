@@ -37,27 +37,28 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 class samppoints {
 public:
   int n;
-  double *X; // dynamic array ,space is allocated in the constructors
-  double *Y; // dynamic array space is allocated in the constructors
+  std::vector<double> X; // dynamic array ,space is allocated in the constructors
+  std::vector<double> Y; // dynamic array space is allocated in the constructors
   double meanX, meanY;
 
   // constructors for the data class
   samppoints();
   samppoints(int N);
-  samppoints(int N, double X[], double Y[]);
+  samppoints(int N, std::vector<double> X, std::vector<double> Y);
 
   // parameter calculation
   void means(void);
   void center(void);
   void scale(void);
-  void print(void);
+  // void print(void);
 
   // destructors
-  // ~samppoints();
+   ~samppoints();
 };
 
 #endif // SAMPPOINTS_H

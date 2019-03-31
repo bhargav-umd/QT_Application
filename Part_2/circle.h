@@ -37,11 +37,8 @@ public:
   //    circle.a - the X-coordinate of the center of the fitting circle
   //    circle.b - the Y-coordinate of the center of the fitting circle
   //    circle.r - the radius of the fitting circle
-  //    circle.s - the root mean square error (the estimate of sigma)
-  //    circle.j - the total number of iterations
 
-  double a, b, r, s, g, Gx, Gy;
-  int i, j;
+  double a, b, r;
 
   // constructors
   circle();

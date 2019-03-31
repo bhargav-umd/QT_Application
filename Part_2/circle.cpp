@@ -35,22 +35,17 @@ circle::circle() {
   a = 0.;
   b = 0.;
   r = 1.;
-  s = 0.;
-  i = 0;
-  j = 0;
 
   /* a =x coordinate of circle center
    * b =y coordinate of circle center
    * c = radius;
-   * s = sigma of points
-   * i = for iterating over points
   */
 }
 
 // Constructor with assignment of the circle parameters only
 
 circle::circle(double aa, double bb, double rr) {
-  a = aa;
-  b = bb;
-  r = rr;
+  this->a = aa;
+  this->b = bb;
+  this->r = rr;
 }

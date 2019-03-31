@@ -32,36 +32,30 @@
 #include "samppoints.h"
 
 samppoints::samppoints() {
-  n = 0;
-  X = new double[n];
-  Y = new double[n];
-  for (int i = 0; i < n; i++) {
-    X[i] = 0.;
-    Y[i] = 0.;
+  this->n = 0;
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->X[i] = 0.;
+    this->Y[i] = 0.;
   }
 }
 
 // Constructor with assignment of the field N
 samppoints::samppoints(int N) {
-  n = N;
-  X = new double[n];
-  Y = new double[n];
+  this->n = N;
 
-  for (int i = 0; i < n; i++) {
-    X[i] = 0.;
-    Y[i] = 0.;
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->X[i] = 0.;
+    this->Y[i] = 0.;
   }
 }
 
 // Constructor with assignment of each field
-samppoints::samppoints(int N, double samppointsX[], double samppointsY[]) {
+samppoints::samppoints(int N, std::vector<double> samppointsX, std::vector<double> samppointsY) {
   n = N;
-  X = new double[n];
-  Y = new double[n];
 
-  for (int i = 0; i < n; i++) {
-    X[i] = samppointsX[i];
-    Y[i] = samppointsY[i];
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->X.push_back(samppointsX[i]);
+    this->Y.push_back(samppointsY[i]);
   }
 }
 
@@ -69,15 +63,15 @@ samppoints::samppoints(int N, double samppointsX[], double samppointsY[]) {
 // centeroid)
 
 void samppoints::means(void) {
-  meanX = 0.;
-  meanY = 0.;
+  this->meanX = 0.;
+  this->meanY = 0.;
 
-  for (int i = 0; i < n; i++) {
-    meanX += X[i];
-    meanY += Y[i];
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->meanX += this->X[i];
+    this->meanY += this->Y[i];
   }
-  meanX /= n;
-  meanY /= n;
+  this->meanX /= n;
+  this->meanY /= n;
 }
 
 // function that centers the samppoints set (shifts the coordinates to the
@@ -85,60 +79,60 @@ void samppoints::means(void) {
 
 void samppoints::center(void) {
   double sX = 0., sY = 0.;
-  int i;
+  // int i;
 
-  for (i = 0; i < n; i++) {
-    sX += X[i];
-    sY += Y[i];
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    sX += this->X[i];
+    sY += this->Y[i];
   }
   sX /= n;
   sY /= n;
 
-  for (i = 0; i < n; i++) {
-    X[i] -= sX;
-    Y[i] -= sY;
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->X[i] -= sX;
+   this->Y[i] -= sY;
   }
-  meanX = 0.;
-  meanY = 0.;
+  this->meanX = 0.;
+  this->meanY = 0.;
 }
 
 // function that scales the coordinates (makes them of order one)
 
 void samppoints::scale(void) {
   double sXX = 0., sYY = 0., scaling;
-  int i;
+  // int i;
 
-  for (i = 0; i < n; i++) {
-    sXX += X[i] * X[i];
-    sYY += Y[i] * Y[i];
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    sXX += this->X[i] * this->X[i];
+    sYY += this->Y[i] * this->Y[i];
   }
   scaling = std::sqrt((sXX + sYY) / n / 2.0);
 
-  for (i = 0; i < n; i++) {
-    X[i] /= scaling;
-    Y[i] /= scaling;
+  for (std::vector<int>::size_type i = 0; int(i) < n; i++) {
+    this->X[i] /= scaling;
+    this->Y[i] /= scaling;
   }
 }
 
 // Printing function
 
-void samppoints::print(void) {
-  std::cout << std::endl
-            << "The samppoints set has " << n
-            << " points with coordinates :" << std::endl;
+//void samppoints::print(void) {
+//  std::cout << std::endl
+//            << "The samppoints set has " << n
+//            << " points with coordinates :" << std::endl;
 
-  for (int i = 0; i < n - 1; i++)
-    std::cout << std::setprecision(7) << "(" << X[i] << "," << Y[i] << "), ";
+//  for (std::vector<int>::size_type i = 0; int(i) < n - 1; i++)
+//    std::cout << std::setprecision(7) << "(" << X[i] << "," << Y[i] << "), ";
 
-  std::cout << "(" << X[n - 1] << "," << Y[n - 1] << ")\n";
-}
+//  std::cout << "(" << X[n - 1] << "," << Y[n - 1] << ")\n";
+//}
 
 // Destructor
-// samppoints::~samppoints()
-//{
-//    delete[] X;
-//    delete[] Y;
-//}
-//
+ samppoints::~samppoints()
+{
+//    delete X;
+//    delete Y;
+}
+
 //
 // TODO: NEED TO DEBUG THE CRASH AFER GENERATING CIRCLE
